@@ -1,16 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/user_balance.dart'; 
+import '../providers/user_balance.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   final String qrData;
 
-  const PaymentScreen({
-    super.key,
-    required this.qrData,
-  });
+  const PaymentScreen({super.key, required this.qrData});
 
   @override
   ConsumerState<PaymentScreen> createState() => _PaymentScreenState();
@@ -19,7 +17,6 @@ class PaymentScreen extends ConsumerStatefulWidget {
 class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   final TextEditingController _amountController = TextEditingController();
   bool isProcessing = false;
-
   String? senderId;
 
   @override
@@ -32,15 +29,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       senderId = currentUser.uid;
-
       await ref.read(userBalanceProvider.notifier).fetchBalance(senderId!);
-      setState(() {}); 
+      setState(() {});
     } else {
-     
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("User not logged in")),
       );
-      Navigator.pop(context); 
+      Navigator.pop(context);
     }
   }
 
@@ -73,7 +68,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     });
 
     try {
-      final firestore = ref.read(firestoreProvider);
+      final firestore = FirebaseFirestore.instance;
       await firestore.runTransaction((transaction) async {
         final senderRef = firestore.collection('users').doc(senderId);
         final receiverRef = firestore.collection('users').doc(widget.qrData);

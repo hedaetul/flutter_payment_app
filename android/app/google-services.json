@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "993132102167",
+    "project_id": "payment-app-ad94a",
+    "storage_bucket": "payment-app-ad94a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:993132102167:android:6656e5f75315a0c7be5252",
+        "android_client_info": {
+          "package_name": "com.example.payment_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_yJW5sUMsnnHQqUww4Uq0Vb8Mmm3sJas"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

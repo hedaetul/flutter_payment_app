@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 final _firebase = FirebaseAuth.instance;
 
@@ -17,44 +18,88 @@ class _AuthScreenState extends State<AuthScreen> {
   var _enteredEmail = '';
   var _enteredUsername = '';
   var _enteredPassword = '';
+  bool _isLoading = false;
 
-  void _submit() async {
+  Future<void> _submit() async {
     final isValid = _formKey.currentState!.validate();
-
-    if (!isValid) {
-      return;
-    }
-
+    if (!isValid) return;
     _formKey.currentState!.save();
+
+    setState(() => _isLoading = true);
 
     try {
       if (_isLogin) {
-        final userCredentials = await _firebase.signInWithEmailAndPassword(
-            email: _enteredEmail, password: _enteredPassword);
+        await _firebase.signInWithEmailAndPassword(
+          email: _enteredEmail,
+          password: _enteredPassword,
+        );
       } else {
         final userCredentials = await _firebase.createUserWithEmailAndPassword(
           email: _enteredEmail,
           password: _enteredPassword,
         );
+
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredentials.user!.uid)
             .set({
           'username': _enteredUsername,
           'email': _enteredEmail,
+          'profileImage': '',
           'balance': 100,
         });
       }
     } on FirebaseAuthException catch (error) {
-      if (error.code == 'email-already-in-use') {
-        // ...
-      }
-      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.message ?? 'Authentication failed.'),
-        ),
+        SnackBar(content: Text(error.message ?? 'Authentication failed.')),
       );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+      final user = userCredential.user;
+
+      if (user != null) {
+        final userRef =
+            FirebaseFirestore.instance.collection('users').doc(user.uid);
+        final doc = await userRef.get();
+
+        // If user is signing in for the first time, save to Firestore
+        if (!doc.exists) {
+          await userRef.set({
+            'username': user.displayName ?? 'Google User',
+            'email': user.email,
+            'profileImage': user.photoURL ?? '',
+            'balance': 100,
+          });
+        }
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google Sign-In failed: $error')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -68,12 +113,7 @@ class _AuthScreenState extends State<AuthScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                margin: const EdgeInsets.only(
-                  top: 30,
-                  bottom: 20,
-                  left: 20,
-                  right: 20,
-                ),
+                margin: const EdgeInsets.only(top: 30, bottom: 20),
                 width: 200,
                 child: Image.asset('assets/images/konoha.png'),
               ),
@@ -89,83 +129,85 @@ class _AuthScreenState extends State<AuthScreen> {
                       children: [
                         TextFormField(
                           key: const ValueKey('email'),
-                          decoration: const InputDecoration(
-                            labelText: 'Email Address',
-                          ),
+                          decoration:
+                              const InputDecoration(labelText: 'Email Address'),
                           keyboardType: TextInputType.emailAddress,
-                          autocorrect: false,
-                          textCapitalization: TextCapitalization.none,
                           validator: (value) {
-                            if (value == null ||
-                                value.trim().isEmpty ||
-                                !value.contains('@')) {
-                              return 'Please enter a valid email address';
+                            if (value == null || !value.contains('@')) {
+                              return 'Enter a valid email address';
                             }
                             return null;
                           },
-                          onSaved: (value) {
-                            _enteredEmail = value!;
-                          },
+                          onSaved: (value) => _enteredEmail = value!,
                         ),
                         if (!_isLogin)
                           TextFormField(
                             key: const ValueKey('username'),
-                            decoration: const InputDecoration(
-                              labelText: 'Username',
-                            ),
-                            enableSuggestions: false,
+                            decoration:
+                                const InputDecoration(labelText: 'Username'),
                             validator: (value) {
-                              if (value == null ||
-                                  value.isEmpty ||
-                                  value.length < 4) {
-                                return 'Please enter at least 4 characters.';
+                              if (value == null || value.length < 4) {
+                                return 'Enter at least 4 characters.';
                               }
                               return null;
                             },
-                            onSaved: (value) {
-                              _enteredUsername = value!;
-                            },
+                            onSaved: (value) => _enteredUsername = value!,
                           ),
                         TextFormField(
                           key: const ValueKey('password'),
-                          decoration: const InputDecoration(
-                            labelText: 'Password',
-                          ),
+                          decoration:
+                              const InputDecoration(labelText: 'Password'),
                           obscureText: true,
                           validator: (value) {
-                            if (value == null || value.trim().length < 6) {
+                            if (value == null || value.length < 6) {
                               return 'Password must be at least 6 characters long';
                             }
                             return null;
                           },
-                          onSaved: (value) {
-                            _enteredPassword = value!;
-                          },
+                          onSaved: (value) => _enteredPassword = value!,
                         ),
                         const SizedBox(height: 12),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primaryContainer,
-                          ),
-                          onPressed: _submit,
-                          child: Text(_isLogin ? 'Login' : 'Signup'),
-                        ),
+                        _isLoading
+                            ? const CircularProgressIndicator()
+                            : ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer,
+                                ),
+                                onPressed: _submit,
+                                child: Text(_isLogin ? 'Login' : 'Signup'),
+                              ),
                         TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _isLogin = !_isLogin;
-                            });
-                          },
+                          onPressed: () => setState(() => _isLogin = !_isLogin),
                           child: Text(_isLogin
                               ? 'Create an account'
-                              : 'Already have an account.Login.'),
-                        )
+                              : 'Already have an account? Login.'),
+                        ),
+                        const SizedBox(height: 8),
+                        _isLoading
+                            ? Container()
+                            : OutlinedButton.icon(
+                                onPressed: _signInWithGoogle,
+                                icon: Image.asset(
+                                  'assets/images/google.png',
+                                  height: 20,
+                                ),
+                                label: const Text('Continue with Google'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.black,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 10, horizontal: 20),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                ),
+                              ),
                       ],
                     ),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),

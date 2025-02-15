@@ -1,10 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:payment_app/screens/invoice.dart';
-import 'package:payment_app/utils/notification_service.dart';
-import 'package:payment_app/utils/store_transaction.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String qrData;
@@ -24,7 +21,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool isReceiverValid = false;
   double _selectedAmount = 0.0;
   final List<double> _presetAmounts = [50, 100, 200, 500];
-  bool _isProcessing = false;
 
   @override
   void initState() {
@@ -43,8 +39,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return;
     }
 
-    final receiverRef =
-        FirebaseFirestore.instance.collection('users').doc(receiverUid);
+    final receiverRef = FirebaseFirestore.instance.collection('users').doc(receiverUid);
     final receiverDoc = await receiverRef.get();
 
     if (receiverDoc.exists) {
@@ -55,15 +50,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
       });
     } else {
       setState(() {
-        receiverName = "";
+        receiverName = "User not found";
         isReceiverValid = false;
       });
     }
   }
 
   Future<void> _fetchSenderDetails() async {
-    final senderRef =
-        FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final senderRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
     final senderDoc = await senderRef.get();
     if (senderDoc.exists) {
       setState(() {
@@ -77,28 +71,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     setState(() {
       _selectedAmount = double.tryParse(value) ?? 0.0;
     });
-  }
-
-  Future<void> _sendPushNotification(
-      String title, String body, String receiverUid) async {
-    try {
-      final receiverDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(receiverUid)
-          .get();
-      final token = receiverDoc.data()?['fcmToken'];
-      if (token != null) {
-        await FirebaseMessaging.instance.sendMessage(
-          to: token,
-          data: {
-            'title': title,
-            'body': body,
-          },
-        );
-      }
-    } catch (e) {
-      print("Error sending push notification: $e");
-    }
   }
 
   Future<void> _handlePayment() async {
@@ -116,10 +88,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return;
     }
 
-    setState(() {
-      _isProcessing = true;
-    });
-
     final usersRef = FirebaseFirestore.instance.collection('users');
 
     try {
@@ -128,9 +96,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       if (senderBalance < amount) {
         _showMessage('Insufficient balance.');
-        setState(() {
-          _isProcessing = false;
-        });
         return;
       }
 
@@ -144,37 +109,37 @@ class _PaymentScreenState extends State<PaymentScreen> {
           throw Exception('Receiver not found during transaction.');
         }
 
-        final updatedSenderBalance =
-            (senderSnapshot.data()?['balance'] ?? 0.0) - amount;
-        final updatedReceiverBalance =
-            (receiverSnapshot.data()?['balance'] ?? 0.0) + amount;
+        final updatedSenderBalance = (senderSnapshot.data()?['balance'] ?? 0.0) - amount;
+        final updatedReceiverBalance = (receiverSnapshot.data()?['balance'] ?? 0.0) + amount;
 
         transaction.update(senderRef, {'balance': updatedSenderBalance});
         transaction.update(receiverRef, {'balance': updatedReceiverBalance});
+
+        final transactionData = {
+          'current_username': senderUsername,
+          'transaction_amount': amount,
+          'date': FieldValue.serverTimestamp(),
+          'counterparty': {
+            'uid': receiverUid,
+            'username': receiverName,
+          },
+          'type': 'cash-out',
+        };
+
+        final reverseTransactionData = {
+          'current_username': receiverName,
+          'amount': amount,
+          'date': FieldValue.serverTimestamp(),
+          'counterUser': {
+            'uid': user.uid,
+            'username': senderUsername,
+          },
+          'type': 'cash-in',
+        };
+
+        transaction.set(senderRef.collection('transactions').doc(), transactionData);
+        transaction.set(receiverRef.collection('transactions').doc(), reverseTransactionData);
       });
-
-      // Add transaction data for sender (cash-out)
-      await addTransactionToFirestore(
-        userUid: user.uid,
-        username: senderUsername,
-        amount: amount,
-        counterUid: receiverUid,
-        counterUsername: receiverName,
-        transactionType: 'cash-out',
-      );
-
-      // Add transaction data for receiver (cash-in)
-      await addTransactionToFirestore(
-        userUid: receiverUid,
-        username: receiverName,
-        amount: amount,
-        counterUid: user.uid,
-        counterUsername: senderUsername,
-        transactionType: 'cash-in',
-      );
-
-      // Send push notifications to both parties
-      LocalNotificationService().uploadFcmToken();
 
       _showMessage('Payment successful!', isSuccess: true);
       Navigator.push(
@@ -191,14 +156,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
         ),
       );
-      setState(() {
-        _isProcessing = false;
-      });
     } catch (error) {
       _showMessage('Transaction failed: $error');
-      setState(() {
-        _isProcessing = false;
-      });
     }
   }
 
@@ -229,16 +188,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
               child: Column(
                 children: [
-                  const Text("Receiver:",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text("Receiver:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 5),
-                  Text(receiverName,
-                      style:
-                          TextStyle(fontSize: 18, color: colorScheme.primary)),
+                  Text(receiverName, style: TextStyle(fontSize: 18, color: colorScheme.primary)),
                   const SizedBox(height: 3),
-                  Text(widget.qrData,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                  Text(widget.qrData, style: const TextStyle(fontSize: 14, color: Colors.grey)),
                 ],
               ),
             ),
@@ -249,39 +203,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
               decoration: InputDecoration(
                 prefix: const Text('\$'),
                 hintText: 'Enter amount',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onChanged: _updateAmount,
             ),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              children: _presetAmounts.map((amount) {
-                return ChoiceChip(
-                  label: Text('\$${amount.toInt()}'),
-                  selected: _selectedAmount == amount,
-                  onSelected: (_) {
-                    _amountController.text = amount.toStringAsFixed(2);
-                    _updateAmount(amount.toString());
-                  },
-                  selectedColor: colorScheme.primary,
-                  labelStyle: TextStyle(
-                    color: _selectedAmount == amount
-                        ? colorScheme.onPrimary
-                        : Colors.black,
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _handlePayment,
-                icon: const Icon(Icons.payment),
-                label: Text(_isProcessing ? 'Processing...' : 'Pay Now'),
-              ),
+            ElevatedButton.icon(
+              onPressed: _handlePayment,
+              icon: const Icon(Icons.payment),
+              label: const Text('Pay Now'),
             ),
           ],
         ),

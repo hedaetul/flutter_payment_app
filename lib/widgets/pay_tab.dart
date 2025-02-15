@@ -95,31 +95,46 @@ class _PayTabState extends State<PayTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    var colorScheme = Theme.of(context).colorScheme;
+    return Stack(
+      alignment: Alignment.center,
       children: [
         // Camera-based QR scanning view.
-        Expanded(
-          flex: 5,
-          child: QRView(
-            key: qrKey,
-            onQRViewCreated: _onQrViewCreated,
-          ),
+
+        QRView(
+          key: qrKey,
+          onQRViewCreated: _onQrViewCreated,
         ),
+
         // Controls: Button to pick an image from the gallery.
-        Expanded(
-          flex: 1,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+
+        Positioned(
+          bottom: 50,
+          child: Column(
             children: [
-              IconButton(
-                onPressed: _pickImageAndScanQr,
-                icon: const Icon(
-                  Icons.image,
-                  size: 30,
+              ElevatedButton(
+                onPressed: () {
+                  DefaultTabController.of(context).animateTo(1);
+                },
+                child: Text(
+                  'Show Qr Code',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: colorScheme.primary,
+                  ),
                 ),
               ),
-              const SizedBox(width: 20),
-              const Text('Scan a QR code from image or camera'),
+              TextButton(
+                onPressed: _pickImageAndScanQr,
+                child: Text(
+                  'Scan a QR code from image or camera',
+                  style: TextStyle(
+                    color: colorScheme.primaryContainer,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

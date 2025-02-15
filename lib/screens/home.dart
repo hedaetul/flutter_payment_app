@@ -1,68 +1,36 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:payment_app/screens/payment.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:payment_app/providers/user_provider.dart';
+import 'package:payment_app/screens/transaction.dart';
 import 'package:payment_app/screens/transfer.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final userAsyncValue = ref.watch(userProvider(userId));
 
-class _HomeScreenState extends State<HomeScreen> {
-  final user = FirebaseAuth.instance.currentUser!;
-  late Future<DocumentSnapshot<Map<String, dynamic>>> _userDoc;
-
-  @override
-  void initState() {
-    super.initState();
-    _userDoc =
-        FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        future: _userDoc,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('User data not found.'));
-          }
-
-          final userData = snapshot.data!.data();
+      body: userAsyncValue.when(
+        data: (userData) {
           final username = userData?['username'] ?? 'User';
-          final balance = userData?['balance'] ?? 0.0;
+          final balance = (userData?['balance'] as num?)?.toDouble() ?? 0.0;
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Hello, $username 👋',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-
                 // Balance Display
                 Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16.0),
                   ),
-                  color: Colors.blueAccent,
+                  color: Theme.of(context).colorScheme.primary,
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
@@ -86,23 +54,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 32),
 
-                // Pay and Transfer Buttons
+                // Transfer & Transaction History Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildActionButton(Icons.payment, 'Pay', () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (ctx) =>
-                                const PaymentScreen(qrData: 'Invalid QR Code')),
-                      );
-                    }),
                     _buildActionButton(Icons.send, 'Transfer', () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (ctx) => const TransferScreen()),
+                      );
+                    }),
+                    _buildActionButton(Icons.history, 'Transactions', () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (ctx) => const TransactionScreen()),
                       );
                     }),
                   ],
@@ -111,6 +78,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error: $e')),
       ),
     );
   }

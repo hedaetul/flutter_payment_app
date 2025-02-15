@@ -28,18 +28,17 @@ class ReceiveTab extends StatelessWidget {
           );
         }
 
-        var userData = snapshot.data!.data() as Map<String, dynamic>? ?? {};
-        String username = userData['username'] ?? 'Unknown username';
-        String email = userData['email'] ?? 'Unknown email';
-        int balance = userData['balance'] ?? 0;
+        // var userData = snapshot.data!.data() as Map<String, dynamic>? ?? {};
+        // String username = userData['username'] ?? 'Unknown username';
+        // String email = userData['email'] ?? 'Unknown email';
+        // int balance = userData['balance'] ?? 0;
 
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               QrImageView(
-                data:
-                    'User ID: ${user.uid}\nEmail: $email\nUsername: $username\nBalance: \$ $balance ',
+                data: user.uid,
                 version: QrVersions.auto,
                 size: 200,
               ),

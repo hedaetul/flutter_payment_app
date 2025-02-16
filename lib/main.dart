@@ -15,7 +15,8 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  LocalNotificationService().requestPermission();
+  final notificationService = NotificationService();
+  await notificationService.initialize();
 
   runApp(
     const ProviderScope(

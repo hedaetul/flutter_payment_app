@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:payment_app/screens/auth.dart';
@@ -15,6 +14,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Initialize notification service
   final notificationService = NotificationService();
   await notificationService.initialize();
 
@@ -34,39 +34,27 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   @override
-  void initState() {
-    super.initState();
-    notificationHandler();
-  }
-
-  void notificationHandler() {
-    FirebaseMessaging.onMessage.listen((event) async {
-      print(event.notification!.title);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Payment App',
       theme: ThemeData().copyWith(
         colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 63, 17, 177)),
+          seedColor: const Color.fromARGB(255, 63, 17, 177),
+        ),
       ),
       home: StreamBuilder(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (ctx, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (ctx, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            if (snapshot.hasData) {
-              return const TabsScreen();
-            }
-            return const AuthScreen();
-          }),
+          if (snapshot.hasData) {
+            return const TabsScreen();
+          }
+          return const AuthScreen();
+        },
+      ),
     );
   }
 }

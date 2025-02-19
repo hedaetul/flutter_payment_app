@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:payment_app/utils/notification_service.dart';
+
+final notificationService = NotificationService();
 
 class AuthService {
   final _firebase = FirebaseAuth.instance;
@@ -26,6 +29,7 @@ class AuthService {
       'profileImage': '',
       'balance': 100,
     });
+    await notificationService.saveUserToken(userCredentials.user!.uid);
   }
 
   Future<void> signInWithGoogle() async {
@@ -40,6 +44,7 @@ class AuthService {
 
     final userCredential = await _firebase.signInWithCredential(credential);
     final user = userCredential.user;
+
     if (user != null) {
       final userRef =
           FirebaseFirestore.instance.collection('users').doc(user.uid);
@@ -50,6 +55,7 @@ class AuthService {
           'profileImage': user.photoURL ?? '',
           'balance': 100,
         });
+        await notificationService.saveUserToken(user.uid);
       }
     }
   }

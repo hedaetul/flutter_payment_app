@@ -14,67 +14,156 @@ class HomeScreen extends ConsumerWidget {
     final userAsyncValue = ref.watch(userProvider(userId));
 
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       body: userAsyncValue.when(
         data: (userData) {
           final username = userData?['username'] ?? 'User';
           final balance = (userData?['balance'] as num?)?.toDouble() ?? 0.0;
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Balance Display
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16.0),
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Welcome Section
+                  Text(
+                    'Welcome back,',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
                   ),
-                  color: Theme.of(context).colorScheme.primary,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
+                  Text(
+                    username,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Balance Card
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(24),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Current Balance',
-                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                          'Total Balance',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 16,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           '\$${balance.toStringAsFixed(2)}',
                           style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            _buildQuickActionButton(
+                              icon: Icons.add,
+                              label: 'Add Money',
+                              onTap: () {
+                                // Add money functionality
+                              },
+                            ),
+                            const SizedBox(width: 12),
+                            _buildQuickActionButton(
+                              icon: Icons.account_balance_wallet,
+                              label: 'Withdraw',
+                              onTap: () {
+                                // Withdraw functionality
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
-                // Transfer & Transaction History Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildActionButton(Icons.send, 'Transfer', () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (ctx) => const TransferScreen()),
-                      );
-                    }),
-                    _buildActionButton(Icons.history, 'Transactions', () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (ctx) => const TransactionScreen()),
-                      );
-                    }),
-                  ],
-                ),
-              ],
+                  // Main Actions
+                  Text(
+                    'Quick Actions',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 1.5,
+                    children: [
+                      _buildMainActionCard(
+                        context: context,
+                        icon: Icons.send,
+                        title: 'Transfer',
+                        subtitle: 'Send money easily',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (ctx) => const TransferScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      _buildMainActionCard(
+                        context: context,
+                        icon: Icons.history,
+                        title: 'History',
+                        subtitle: 'View transactions',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (ctx) => const TransactionScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -84,14 +173,72 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionButton(IconData icon, String label, VoidCallback onTap) {
-    return ElevatedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 24),
-      label: Text(label),
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-        textStyle: const TextStyle(fontSize: 16),
+  Widget _buildQuickActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: ElevatedButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon, size: 20, color: Colors.white),
+        label: Text(
+          label,
+          style: const TextStyle(color: Colors.white),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white24,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          elevation: 0,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainActionCard({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 32,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

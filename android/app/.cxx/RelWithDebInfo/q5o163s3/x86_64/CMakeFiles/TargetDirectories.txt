@@ -1,0 +1,2 @@
+/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86_64/CMakeFiles/edit_cache.dir
+/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86_64/CMakeFiles/rebuild_cache.dir

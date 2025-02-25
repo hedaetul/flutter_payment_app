@@ -12,6 +12,7 @@ android {
     namespace = "com.example.payment_app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+ 
 
     compileOptions {
         // Updated to Java 17 for compatibility with modern libraries

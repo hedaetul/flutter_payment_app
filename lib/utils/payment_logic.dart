@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:payment_app/screens/invoice.dart';
-import 'package:payment_app/utils/notification_service.dart';
+import 'package:payment_app/services/notification_service.dart';
 import 'package:payment_app/utils/store_transaction.dart';
-
 
 class PaymentLogic {
   static final NotificationService _notificationService = NotificationService();
@@ -47,83 +47,110 @@ class PaymentLogic {
     final receiverRef =
         FirebaseFirestore.instance.collection('users').doc(receiverUid);
 
-    try {
-      await FirebaseFirestore.instance.runTransaction((transaction) async {
-        final senderDoc = await transaction.get(senderRef);
-        final receiverDoc = await transaction.get(receiverRef);
-        if (!receiverDoc.exists) throw Exception('Receiver not found.');
+    String? senderUsername;
+    String? senderEmail;
+    String? receiverEmail;
+    String? receiverUsername = receiverName;
+    bool transactionSuccess = false;
 
-        final senderBalance = (senderDoc.data()?['balance'] ?? 0.0).toDouble();
+    try {
+      // Get user data
+      final senderDoc = await senderRef.get();
+      final receiverDoc = await receiverRef.get();
+
+      if (!receiverDoc.exists) {
+        if (context.mounted) {
+          _showMessage(context, 'Receiver not found.');
+        }
+        return;
+      }
+
+      senderUsername = senderDoc.data()?['username'] ?? 'Unknown Sender';
+      senderEmail = senderDoc.data()?['email'] ?? 'Unknown Email';
+      receiverUsername = receiverDoc.data()?['username'] ?? receiverName;
+      receiverEmail = receiverDoc.data()?['email'] ?? 'Unknown Email';
+
+      // Run transaction for balance updates
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final senderSnapshot = await transaction.get(senderRef);
+        final receiverSnapshot = await transaction.get(receiverRef);
+
+        final senderBalance =
+            (senderSnapshot.data()?['balance'] ?? 0.0).toDouble();
         if (senderBalance < amount) {
           throw Exception('Insufficient balance.');
         }
 
         final updatedSenderBalance = senderBalance - amount;
         final updatedReceiverBalance =
-            (receiverDoc.data()?['balance'] ?? 0.0) + amount;
+            (receiverSnapshot.data()?['balance'] ?? 0.0) + amount;
 
         transaction.update(senderRef, {'balance': updatedSenderBalance});
         transaction.update(receiverRef, {'balance': updatedReceiverBalance});
+      });
 
-        // Store transactions
-        await addTransactionToFirestore(
-          userUid: senderUid,
-          username: senderDoc.data()?['username'],
-          amount: amount,
-          counterUid: receiverUid,
-          counterUsername: receiverName,
-          transactionType: 'cash-out',
-        );
+      // Store transaction records
+      await addTransactionToFirestore(
+        userUid: senderUid,
+        username: senderUsername!,
+        amount: amount,
+        counterUid: receiverUid,
+        counterUsername: receiverUsername!,
+        transactionType: 'cash-out',
+      );
 
-        await addTransactionToFirestore(
-          userUid: receiverUid,
-          username: receiverName,
-          amount: amount,
-          counterUid: senderUid,
-          counterUsername: senderDoc.data()?['username'],
-          transactionType: 'cash-in',
-        );
+      await addTransactionToFirestore(
+        userUid: receiverUid,
+        username: receiverUsername,
+        amount: amount,
+        counterUid: senderUid,
+        counterUsername: senderUsername,
+        transactionType: 'cash-in',
+      );
 
-        final senderUsername =
-            senderDoc.data()?['username'] ?? 'Unknown Sender';
-        final senderEmail = senderDoc.data()?['email'] ?? 'Unknown Email';
-        final receiverUsername =
-            receiverDoc.data()?['username'] ?? 'Unknown Receiver';
-        final receiverEmail = receiverDoc.data()?['email'] ?? 'Unknown Email';
+      transactionSuccess = true;
 
-        // Send notification to receiver
-        await _notificationService.sendPaymentNotification(
-          receiverUid: receiverUid,
-          senderName: senderUsername,
-          amount: amount,
-          type: 'received',
-        );
+      // Send Notifications
+      if (transactionSuccess) {
+        try {
+          // Send notification to the sender
+          await _notificationService.showNotification(
+            RemoteMessage(
+              notification: RemoteNotification(
+                title: "Payment Successful",
+                body:
+                    "You sent \$${amount.toStringAsFixed(2)} to $receiverUsername",
+              ),
+              data: {"transactionType": "cash-out"},
+            ),
+          );
 
-        // Send notification to sender
-        await _notificationService.sendPaymentNotification(
-          receiverUid: senderUid,
-          senderName: receiverUsername,
-          amount: amount,
-          type: 'sent',
-        );
+          // Send notification to the receiver
+        } catch (notificationError) {
+          print('Error sending notifications: $notificationError');
+        }
 
         _showMessage(context, 'Payment successful!', success: true);
+
+        // Navigate to invoice screen
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (ctx) => InvoiceScreen(
               senderUid: senderUid,
-              senderEmail: senderEmail,
-              senderUsername: senderUsername,
+              senderEmail: senderEmail!,
+              senderUsername: senderUsername!,
               receiverUid: receiverUid,
-              receiverEmail: receiverEmail,
-              receiverUsername: receiverUsername,
+              receiverEmail: receiverEmail!,
+              receiverUsername: receiverUsername!,
               amount: amount,
             ),
           ),
         );
-      });
+      }
     } catch (e) {
-      _showMessage(context, 'Transaction failed: $e');
+      print('Transaction error: $e');
+      _showMessage(
+          context, 'Transaction failed: ${e.toString().split(':').last}');
     }
   }
 

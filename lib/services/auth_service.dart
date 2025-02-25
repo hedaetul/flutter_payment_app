@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:payment_app/utils/notification_service.dart';
+import 'package:payment_app/services/notification_service.dart';
 
 final notificationService = NotificationService();
 
@@ -20,6 +20,8 @@ class AuthService {
       password: password,
     );
 
+    final fcmToken = await notificationService.getDeviceToken();
+
     await FirebaseFirestore.instance
         .collection('users')
         .doc(userCredentials.user!.uid)
@@ -28,8 +30,8 @@ class AuthService {
       'email': email,
       'profileImage': '',
       'balance': 100,
+      'fcmToken': fcmToken
     });
-    await notificationService.saveUserToken(userCredentials.user!.uid);
   }
 
   Future<void> signInWithGoogle() async {
@@ -44,6 +46,7 @@ class AuthService {
 
     final userCredential = await _firebase.signInWithCredential(credential);
     final user = userCredential.user;
+    final fcmToken = await notificationService.getDeviceToken();
 
     if (user != null) {
       final userRef =
@@ -54,8 +57,8 @@ class AuthService {
           'email': user.email,
           'profileImage': user.photoURL ?? '',
           'balance': 100,
+          'fcmToken': fcmToken
         });
-        await notificationService.saveUserToken(user.uid);
       }
     }
   }

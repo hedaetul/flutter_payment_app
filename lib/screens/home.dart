@@ -15,27 +15,6 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: const Text(
-          'Dashboard',
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon:
-                const Icon(Icons.notifications_outlined, color: Colors.black87),
-            onPressed: () {
-              // Add notification functionality
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
       body: userAsyncValue.when(
         data: (userData) {
           final username = userData?['username'] ?? 'User';

@@ -1,8 +1,6 @@
-import 'dart:io';
-
 import 'package:app_settings/app_settings.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:payment_app/screens/tabs.dart';
@@ -12,7 +10,12 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-// For notification request
+  // 🔹 Singleton Pattern
+  static final NotificationService _instance = NotificationService._internal();
+  factory NotificationService() => _instance;
+  NotificationService._internal();
+
+  // 🔹 Request Notification Permission
   void requestNotificationPermission() async {
     NotificationSettings settings = await messaging.requestPermission(
       alert: true,
@@ -24,14 +27,12 @@ class NotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted permission');
+      print('✅ User granted permission');
     } else if (settings.authorizationStatus ==
         AuthorizationStatus.provisional) {
-      print('User granted provisional permission');
+      print('⚠️ User granted provisional permission');
     } else {
-      const SnackBar(
-        content: Text('User declined or has not accepted permission'),
-      );
+      print('❌ User declined permission');
       Future.delayed(
         const Duration(seconds: 2),
         () {
@@ -41,63 +42,46 @@ class NotificationService {
     }
   }
 
-  // Get Token
-  Future<String> getDeviceToken() async {
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      announcement: true,
-      badge: true,
-      criticalAlert: true,
-      provisional: true,
-      sound: true,
-    );
+  // 🔹 Get Device Token for Firebase Messaging
+  Future<String?> getDeviceToken() async {
     String? token = await messaging.getToken();
-    print('token=> $token');
-    return token!;
+    print('🔹 FCM Token: $token');
+    return token;
   }
 
-  // Init
-  void initLocalNotifications(
-      BuildContext context, RemoteMessage message) async {
+  // 🔹 Initialize Local Notifications
+  void initLocalNotifications(BuildContext context) async {
     var androidInitSetting =
         const AndroidInitializationSettings("@mipmap/ic_launcher");
-
-    var initializationSettings = InitializationSettings(
-      android: androidInitSetting,
-    );
+    var initializationSettings =
+        InitializationSettings(android: androidInitSetting);
     await _flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (payload) {
-        handleMessage(context, message);
+        handleMessage(context);
       },
     );
   }
 
-  //firebase init
+  // 🔹 Initialize Firebase Messaging Listeners
   void firebaseInit(BuildContext context) {
-    FirebaseMessaging.onMessage.listen(
-      (message) {
-        RemoteNotification? notification = message.notification;
-        AndroidNotification? android = message.notification!.android;
+    FirebaseMessaging.onMessage.listen((message) {
+      RemoteNotification? notification = message.notification;
+      if (notification != null) {
+        showNotification(message);
+      }
+    });
 
-        if (kDebugMode) {
-          print('notificationTitle: ${notification!.title}');
-          print('notificationTitle: ${notification.body}');
-        }
-        if (Platform.isAndroid) {
-          initLocalNotifications(context, message);
-          //handleMessage(context, message);
-          showNotification(message);
-        }
-      },
-    );
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      handleMessage(context);
+    });
   }
 
-  // function to show notification
+  // 🔹 Show Notification
   Future<void> showNotification(RemoteMessage message) async {
     AndroidNotificationChannel channel = AndroidNotificationChannel(
-      message.notification!.android!.channelId.toString(),
-      message.notification!.android!.channelId.toString(),
+      message.notification?.android?.channelId ?? "high_importance_channel",
+      message.notification?.android?.channelId ?? "high_importance_channel",
       importance: Importance.high,
       showBadge: true,
       playSound: true,
@@ -105,59 +89,64 @@ class NotificationService {
 
     AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails(
-      channel.id.toString(),
-      channel.name.toString(),
-      channelDescription: "Chanel description",
+      channel.id,
+      channel.name,
+      channelDescription: "Transaction Notifications",
       importance: Importance.high,
       priority: Priority.high,
-      sound: channel.sound,
+      playSound: true,
     );
 
-    //notification merge
     NotificationDetails notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
     );
 
-    //show notification
-    Future.delayed(
-      Duration.zero,
-      () {
-        _flutterLocalNotificationsPlugin.show(
-          0,
-          message.notification!.title.toString(),
-          message.notification!.body.toString(),
-          notificationDetails,
-          payload: message.data.toString(),
-        );
-      },
+    _flutterLocalNotificationsPlugin.show(
+      0,
+      message.notification!.title,
+      message.notification!.body,
+      notificationDetails,
+      payload: message.data.toString(),
     );
   }
 
-  //background message
-  Future<void> setupInteractMessage(BuildContext context) async {
-    FirebaseMessaging.onMessageOpenedApp.listen(
-      (message) {
-        handleMessage(context, message);
-      },
-    );
+  // 🔹 Listen for Balance Changes (Receiver Notification)
+  void listenForBalanceChanges(String receiverUid) {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(receiverUid)
+        .collection('transactions')
+        .snapshots()
+        .listen((snapshot) {
+      for (var change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          final data = change.doc.data();
+          if (data != null && data['type'] == 'cash-in') {
+            double amount = (data['amount'] ?? 0.0).toDouble();
+            String senderName = data['senderName'] ?? "Someone";
 
-    // terminate state
-    FirebaseMessaging.instance.getInitialMessage().then(
-      (RemoteMessage? message) {
-        if (message != null && message.data.isNotEmpty) {
-          handleMessage(context, message);
+            // 🔹 Notify receiver about received payment
+            showNotification(
+              RemoteMessage(
+                notification: RemoteNotification(
+                  title: "💰 Payment Received",
+                  body:
+                      "You received \$${amount.toStringAsFixed(2)} from $senderName",
+                ),
+                data: {"transactionType": "cash-in"},
+              ),
+            );
+          }
         }
-      },
-    );
+      }
+    });
   }
 
-  Future<void> handleMessage(
-      BuildContext context, RemoteMessage message) async {
+  // 🔹 Handle Notification Clicks
+  Future<void> handleMessage(BuildContext context) async {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (ctx) => const TabsScreen(),
-      ),
+      MaterialPageRoute(builder: (ctx) => const TabsScreen()),
     );
   }
 }

@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:payment_app/screens/invoice.dart';
-import 'package:payment_app/utils/notification_service.dart';
+import 'package:payment_app/services/notification_service.dart';
 import 'package:payment_app/utils/store_transaction.dart';
 
 class PaymentLogic {
@@ -53,12 +54,14 @@ class PaymentLogic {
     bool transactionSuccess = false;
 
     try {
-      // First get user data outside of transaction to avoid potential issues
+      // Get user data
       final senderDoc = await senderRef.get();
       final receiverDoc = await receiverRef.get();
 
       if (!receiverDoc.exists) {
-        _showMessage(context, 'Receiver not found.');
+        if (context.mounted) {
+          _showMessage(context, 'Receiver not found.');
+        }
         return;
       }
 
@@ -67,9 +70,8 @@ class PaymentLogic {
       receiverUsername = receiverDoc.data()?['username'] ?? receiverName;
       receiverEmail = receiverDoc.data()?['email'] ?? 'Unknown Email';
 
-      // Now run the transaction for the balance updates
+      // Run transaction for balance updates
       await FirebaseFirestore.instance.runTransaction((transaction) async {
-        // Re-get the documents inside transaction to ensure data consistency
         final senderSnapshot = await transaction.get(senderRef);
         final receiverSnapshot = await transaction.get(receiverRef);
 
@@ -83,12 +85,11 @@ class PaymentLogic {
         final updatedReceiverBalance =
             (receiverSnapshot.data()?['balance'] ?? 0.0) + amount;
 
-        // Update balances
         transaction.update(senderRef, {'balance': updatedSenderBalance});
         transaction.update(receiverRef, {'balance': updatedReceiverBalance});
       });
 
-      // After successful transaction, store transaction records
+      // Store transaction records
       await addTransactionToFirestore(
         userUid: senderUid,
         username: senderUsername!,
@@ -109,25 +110,23 @@ class PaymentLogic {
 
       transactionSuccess = true;
 
-      // Send notifications after successful transaction
+      // Send Notifications
       if (transactionSuccess) {
         try {
-          // Send notifications to both sender and receiver
-          await _notificationService.sendPaymentNotification(
-            receiverUid: receiverUid,
-            senderName: senderUsername,
-            amount: amount,
-            type: 'received',
+          // Send notification to the sender
+          await _notificationService.showNotification(
+            RemoteMessage(
+              notification: RemoteNotification(
+                title: "Payment Successful",
+                body:
+                    "You sent \$${amount.toStringAsFixed(2)} to $receiverUsername",
+              ),
+              data: {"transactionType": "cash-out"},
+            ),
           );
 
-          await _notificationService.sendPaymentNotification(
-            receiverUid: senderUid,
-            senderName: receiverUsername,
-            amount: amount,
-            type: 'sent',
-          );
+          // Send notification to the receiver
         } catch (notificationError) {
-          // Log notification error but don't fail the transaction
           print('Error sending notifications: $notificationError');
         }
 

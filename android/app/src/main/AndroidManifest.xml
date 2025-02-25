@@ -34,7 +34,7 @@
             <!-- Firebase notification channel -->
             <meta-data
                 android:name="com.google.firebase.messaging.default_notification_channel_id"
-                android:value="payment-channel"/>
+                android:value="payment-channel_id"/>
 
            
 

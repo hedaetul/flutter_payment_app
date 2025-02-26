@@ -3,9 +3,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:payment_app/helper/showcase_helper.dart';
 import 'package:payment_app/screens/auth.dart';
 import 'package:payment_app/screens/tabs.dart';
 import 'package:payment_app/services/notification_service.dart';
+import 'package:payment_app/utils/showcase_keys.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import 'firebase_options.dart';
 
@@ -25,8 +28,8 @@ void main() async {
   });
 
   runApp(
-    const ProviderScope(
-      child: App(),
+    ProviderScope(
+      child: ShowCaseWidget(builder: (context) => const App()),
     ),
   );
 }
@@ -51,6 +54,23 @@ class _AppState extends State<App> {
     FirebaseMessaging.instance.getInitialMessage().then((message) {
       if (message != null) {
         NotificationService().handleMessage(context);
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(const Duration(microseconds: 300));
+      bool seen = await ShowcaseHelper.hasSeenShowcase();
+      if (!seen && mounted) {
+        ShowCaseWidget.of(context).startShowCase([
+          ShowcaseKeys.firstShowcaseWidget,
+          ShowcaseKeys.secondShowcaseWidget,
+          ShowcaseKeys.thirdShowcaseWidget,
+          ShowcaseKeys.fourthShowcaseWidget,
+          ShowcaseKeys.fifthShowcaseWidget,
+          ShowcaseKeys.sixthShowcaseWidget,
+          ShowcaseKeys.lastShowcaseWidget
+        ]);
+        await ShowcaseHelper.markShowcaseSeen();
       }
     });
   }

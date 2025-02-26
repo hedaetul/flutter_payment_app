@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:payment_app/providers/user_provider.dart';
 import 'package:payment_app/screens/transaction.dart';
 import 'package:payment_app/screens/transfer.dart';
+import 'package:payment_app/utils/showcase_keys.dart';
+import 'package:payment_app/widgets/home/main_action_card.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -90,21 +93,30 @@ class HomeScreen extends ConsumerWidget {
                         const SizedBox(height: 24),
                         Row(
                           children: [
-                            _buildQuickActionButton(
-                              icon: Icons.add,
-                              label: 'Add Money',
-                              onTap: () {
-                                // Add money functionality
-                              },
+                            Showcase(
+                              key: ShowcaseKeys.fourthShowcaseWidget,
+                              description:
+                                  'Tap here to add money to your wallet',
+                              child: _buildQuickActionButton(
+                                icon: Icons.add,
+                                label: 'Add Money',
+                                onTap: () {
+                                  // Add money functionality
+                                },
+                              ),
                             ),
                             const SizedBox(width: 12),
-                            _buildQuickActionButton(
-                              icon: Icons.account_balance_wallet,
-                              label: 'Withdraw',
-                              onTap: () {
-                                // Withdraw functionality
-                              },
-                            ),
+                            Showcase(
+                              key: ShowcaseKeys.fifthShowcaseWidget,
+                              description: 'Tap here to withdraw money',
+                              child: _buildQuickActionButton(
+                                icon: Icons.account_balance_wallet,
+                                label: 'Withdraw',
+                                onTap: () {
+                                  // Withdraw functionality
+                                },
+                              ),
+                            )
                           ],
                         ),
                       ],
@@ -132,34 +144,41 @@ class HomeScreen extends ConsumerWidget {
                     crossAxisSpacing: 16,
                     childAspectRatio: 1.5,
                     children: [
-                      _buildMainActionCard(
-                        context: context,
-                        icon: Icons.send,
-                        title: 'Transfer',
-                        subtitle: 'Send money easily',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (ctx) => const TransferScreen(),
-                            ),
-                          );
-                        },
+                      Showcase(
+                        key: ShowcaseKeys.sixthShowcaseWidget,
+                        description:
+                            'Tap here to transfer money with acc number',
+                        child: MainActionCard(
+                          icon: Icons.send,
+                          title: 'Transfer Money',
+                          subtitle: 'Transfer money easily',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (ctx) => const TransferScreen(),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                      _buildMainActionCard(
-                        context: context,
-                        icon: Icons.history,
-                        title: 'History',
-                        subtitle: 'View transactions',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (ctx) => const TransactionScreen(),
-                            ),
-                          );
-                        },
-                      ),
+                      Showcase(
+                        key: ShowcaseKeys.lastShowcaseWidget,
+                        description: 'Tap here to view transactions history',
+                        child: MainActionCard(
+                          icon: Icons.history,
+                          title: 'History',
+                          subtitle: 'View transactions',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (ctx) => const TransactionScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      )
                     ],
                   ),
                 ],
@@ -178,7 +197,8 @@ class HomeScreen extends ConsumerWidget {
     required String label,
     required VoidCallback onTap,
   }) {
-    return Expanded(
+    return Padding(
+      padding: const EdgeInsets.all(8),
       child: ElevatedButton.icon(
         onPressed: onTap,
         icon: Icon(icon, size: 20, color: Colors.white),
@@ -188,7 +208,7 @@ class HomeScreen extends ConsumerWidget {
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white24,
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
           elevation: 0,
         ),
       ),

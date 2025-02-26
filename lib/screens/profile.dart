@@ -48,7 +48,7 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 AccountInfoCard(
                   uid: currentUser.uid,
-                  balance: userData['balance'] ?? 0.0,
+                  balance: (userData['balance'] as num?)?.toDouble() ?? 0.0,
                 ),
                 const SizedBox(height: 30),
                 const LogoutButton(),

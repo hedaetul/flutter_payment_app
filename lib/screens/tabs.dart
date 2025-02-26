@@ -6,12 +6,19 @@ import 'package:payment_app/providers/user_provider.dart';
 import 'package:payment_app/screens/home.dart';
 import 'package:payment_app/screens/profile.dart';
 import 'package:payment_app/screens/qr.dart';
+import 'package:payment_app/utils/showcase_keys.dart';
+import 'package:showcaseview/showcaseview.dart';
 
-class TabsScreen extends ConsumerWidget {
+class TabsScreen extends ConsumerStatefulWidget {
   const TabsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TabsScreen> createState() => _TabsScreenState();
+}
+
+class _TabsScreenState extends ConsumerState<TabsScreen> {
+  @override
+  Widget build(BuildContext context) {
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
     final userAsyncValue = ref.watch(userProvider(userId));
     final selectedPageIndex = ref.watch(tabsProvider);
@@ -56,16 +63,28 @@ class TabsScreen extends ConsumerWidget {
           ref.read(tabsProvider.notifier).state = index;
         },
         items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
+          BottomNavigationBarItem(
+            icon: Showcase(
+                key: ShowcaseKeys.firstShowcaseWidget,
+                description: 'This is homepage',
+                targetPadding: const EdgeInsets.all(8),
+                child: const Icon(Icons.home_outlined)),
             label: '',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner),
+          BottomNavigationBarItem(
+            icon: Showcase(
+                key: ShowcaseKeys.secondShowcaseWidget,
+                description: 'Tap here for scan QR code',
+                targetPadding: const EdgeInsets.all(8),
+                child: const Icon(Icons.qr_code_scanner)),
             label: '',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+          BottomNavigationBarItem(
+            icon: Showcase(
+                key: ShowcaseKeys.thirdShowcaseWidget,
+                description: 'Tap here for view profile',
+                targetPadding: const EdgeInsets.all(8),
+                child: const Icon(Icons.person)),
             label: '',
           ),
         ],

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:payment_app/providers/tabs_provider.dart';
 import 'package:payment_app/providers/user_provider.dart';
-import 'package:payment_app/screens/home.dart';
-import 'package:payment_app/screens/profile.dart';
-import 'package:payment_app/screens/qr.dart';
+import 'package:payment_app/screens/tabs/home.dart';
+import 'package:payment_app/screens/tabs/profile.dart';
+import 'package:payment_app/screens/tabs/qr.dart';
 import 'package:payment_app/utils/showcase_keys.dart';
 import 'package:showcaseview/showcaseview.dart';
 

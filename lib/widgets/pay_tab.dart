@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart'
     as mlkit;
 import 'package:image_picker/image_picker.dart';
-import 'package:payment_app/screens/payment.dart';
+import 'package:payment_app/screens/payment/payment.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 class PayTab extends StatefulWidget {

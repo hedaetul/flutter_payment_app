@@ -1,7 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:payment_app/screens/invoice.dart';
+import 'package:payment_app/utils/payment_logic.dart';
 
 class TransferScreen extends StatefulWidget {
   const TransferScreen({super.key});
@@ -17,6 +16,8 @@ class _TransferScreenState extends State<TransferScreen> {
   final _formKey = GlobalKey<FormState>();
   final user = FirebaseAuth.instance.currentUser!;
   bool _isTransferring = false;
+  String _receiverName = "Unknown";
+
   final List<double> _presetAmounts = [50, 100, 200, 500];
 
   void _updateAmount(String value) {
@@ -25,82 +26,33 @@ class _TransferScreenState extends State<TransferScreen> {
     });
   }
 
-  Future<void> _handleTransfer() async {
-    setState(() => _isTransferring = true);
+  Future<void> _fetchReceiverDetails() async {
     final receiverUid = _receiverUidController.text.trim();
-
-    if (receiverUid.isEmpty || _selectedAmount <= 0) {
-      _showMessage('Enter a valid receiver UID and amount.');
-      setState(() => _isTransferring = false);
-      return;
-    }
-
-    final usersRef = FirebaseFirestore.instance.collection('users');
-
-    try {
-      final senderDoc = await usersRef.doc(user.uid).get();
-      final receiverDoc = await usersRef.doc(receiverUid).get();
-
-      if (!receiverDoc.exists) {
-        _showMessage('Receiver not found.');
-        setState(() => _isTransferring = false);
-        return;
-      }
-
-      final senderBalance = (senderDoc.data()?['balance'] ?? 0.0).toDouble();
-      final receiverBalance =
-          (receiverDoc.data()?['balance'] ?? 0.0).toDouble();
-
-      if (senderBalance < _selectedAmount) {
-        _showMessage('Insufficient balance.');
-        setState(() => _isTransferring = false);
-        return;
-      }
-
-      await FirebaseFirestore.instance.runTransaction((transaction) async {
-        final senderRef = usersRef.doc(user.uid);
-        final receiverRef = usersRef.doc(receiverUid);
-        final senderSnapshot = await transaction.get(senderRef);
-        final receiverSnapshot = await transaction.get(receiverRef);
-
-        if (!receiverSnapshot.exists) {
-          throw Exception('Receiver not found during transaction.');
+    if (receiverUid.isNotEmpty) {
+      PaymentLogic.fetchReceiverDetails(receiverUid, (name, email, valid) {
+        if (valid) {
+          setState(() => _receiverName = name);
+        } else {
+          setState(() => _receiverName = "Unknown");
         }
-
-        final updatedSenderBalance =
-            (senderSnapshot.data()?['balance'] ?? 0.0) - _selectedAmount;
-        final updatedReceiverBalance =
-            (receiverSnapshot.data()?['balance'] ?? 0.0) + _selectedAmount;
-
-        transaction.update(senderRef, {'balance': updatedSenderBalance});
-        transaction.update(receiverRef, {'balance': updatedReceiverBalance});
       });
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => InvoiceScreen(
-            senderUid: user.uid,
-            senderEmail: senderDoc.data()?['email'] ?? 'No email',
-            senderUsername: senderDoc.data()?['username'] ?? 'No username',
-            receiverUid: receiverUid,
-            receiverEmail: receiverDoc.data()?['email'] ?? 'No email',
-            receiverUsername: receiverDoc.data()?['username'] ?? 'No username',
-            amount: _selectedAmount,
-          ),
-        ),
-      );
-    } catch (error) {
-      _showMessage('Error: $error');
-    } finally {
-      setState(() => _isTransferring = false);
     }
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+  Future<void> _handleTransfer() async {
+    setState(() => _isTransferring = true);
+    final receiverUid = _receiverUidController.text.trim();
+    final amountStr = _amountController.text.trim();
+
+    await PaymentLogic.handlePayment(
+      user.uid,
+      receiverUid,
+      _receiverName,
+      amountStr,
+      context,
     );
+
+    setState(() => _isTransferring = false);
   }
 
   @override
@@ -125,7 +77,11 @@ class _TransferScreenState extends State<TransferScreen> {
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
+                onChanged: (_) => _fetchReceiverDetails(),
               ),
+              const SizedBox(height: 10),
+              Text('Receiver: $_receiverName',
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
               Text('Amount to Transfer',
                   style: TextStyle(color: colorScheme.primary)),
@@ -168,7 +124,7 @@ class _TransferScreenState extends State<TransferScreen> {
                   onPressed: _isTransferring ? null : _handleTransfer,
                   icon: const Icon(Icons.send),
                   label: _isTransferring
-                      ? const Text('Transferring')
+                      ? const Text('Transferring...')
                       : const Text('Transfer Now'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
@@ -178,7 +134,7 @@ class _TransferScreenState extends State<TransferScreen> {
                 ),
               ),
             ],
-        ),
+          ),
         ),
       ),
     );

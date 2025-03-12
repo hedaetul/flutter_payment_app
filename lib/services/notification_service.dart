@@ -10,7 +10,7 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-      //what is ther problem whowe hr
+  //what is ther problem whowe hr
 
   // 🔹 Singleton Pattern
   static final NotificationService _instance = NotificationService._internal();
@@ -125,7 +125,12 @@ class NotificationService {
           final data = change.doc.data();
           if (data != null && data['type'] == 'cash-in') {
             double amount = (data['amount'] ?? 0.0).toDouble();
-            String senderName = data['senderName'] ?? "Someone";
+
+            // Fix: Fetch counterUser properly
+            Map<String, dynamic>? counterUser =
+                data['counterUser'] as Map<String, dynamic>?;
+
+            String senderName = counterUser?['username'] ?? "Someone";
 
             // 🔹 Notify receiver about received payment
             showNotification(

@@ -4,9 +4,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:payment_app/helper/showcase_helper.dart';
-import 'package:payment_app/screens/auth.dart';
+import 'package:payment_app/screens/auth/auth_intro.dart';
 import 'package:payment_app/screens/tabs.dart';
 import 'package:payment_app/services/notification_service.dart';
+import 'package:payment_app/theme/app_theme.dart';
 import 'package:payment_app/utils/showcase_keys.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -17,15 +18,6 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  // 🔹 Start listening for authentication state changes
-  FirebaseAuth.instance.authStateChanges().listen((User? user) {
-    if (user != null) {
-      NotificationService()
-          .firebaseInit(NavigationService.navigatorKey.currentContext!);
-      NotificationService().listenForBalanceChanges(user.uid);
-    }
-  });
 
   runApp(
     ProviderScope(
@@ -46,13 +38,24 @@ class _AppState extends State<App> {
   void initState() {
     super.initState();
 
-    // 🔹 Now the context is available
+    // 🔹 Listen for authentication state changes and update UI instantly
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (mounted) {
+        setState(() {}); // 🔹 Force UI update when user state changes
+      }
+
+      if (user != null) {
+        NotificationService()
+            .firebaseInit(NavigationService.navigatorKey.currentContext!);
+        NotificationService().listenForBalanceChanges(user.uid);
+      }
+    });
+
     NotificationService().initLocalNotifications(context);
     NotificationService().requestNotificationPermission();
 
-    // 🔹 Handle Notification Clicks When App is Terminated
     FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) {
+      if (message != null && mounted) {
         NotificationService().handleMessage(context);
       }
     });
@@ -80,12 +83,8 @@ class _AppState extends State<App> {
     return MaterialApp(
       title: 'Payment App',
       navigatorKey: NavigationService.navigatorKey,
-      theme: ThemeData().copyWith(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 63, 17, 177),
-        ),
-      ),
-      home: StreamBuilder(
+      theme: AppTheme.lightTheme,
+      home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (ctx, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -95,7 +94,7 @@ class _AppState extends State<App> {
           if (snapshot.hasData) {
             return const TabsScreen();
           }
-          return const AuthScreen();
+          return const AuthIntroScreen();
         },
       ),
     );

@@ -7,8 +7,8 @@ class LogoWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(top: 30, bottom: 20),
-      width: 200,
-      child: Image.asset('assets/images/konoha.png'),
+      width: 400,
+      child: Image.asset('assets/images/starting_wallpaper.png'),
     );
   }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../services/auth_service.dart';
-import '../widgets/auth/auth_form.dart';
-import '../widgets/auth/logo_widget.dart';
+import '../../services/auth_service.dart';
+import '../../widgets/auth/auth_form.dart';
+import '../../widgets/auth/logo_widget.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});

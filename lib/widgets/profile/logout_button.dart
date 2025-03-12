@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:payment_app/screens/transfer.dart';
+import 'package:payment_app/screens/payment/transfer.dart';
 
 class LogoutButton extends StatelessWidget {
   const LogoutButton({super.key});

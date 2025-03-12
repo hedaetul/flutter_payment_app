@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:payment_app/screens/invoice.dart';
+import 'package:payment_app/screens/payment/invoice.dart';
 import 'package:payment_app/services/notification_service.dart';
 import 'package:payment_app/utils/store_transaction.dart';
 

@@ -2,6 +2,7 @@ C/C++ Structured Logd
 b
 `/home/hedaetul/Applications/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txtC
 A
+<<<<<<< HEAD
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	îò€éî2¤ í–•Ñ2t
 r
 p/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/additional_project_files.txt	îò€éî2 Š×£àÓ2q
@@ -26,3 +27,29 @@ h
 f/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/prefab_config.json	ïò€éî2( ×£àÓ2o
 m
 k/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/symbol_folder_index.txt	ïò€éî2b ×£àÓ2
+=======
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	Â‘üçî2¤ í–•Ñ2t
+r
+p/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/additional_project_files.txt	Â‘üçî2 Š×£àÓ2q
+o
+m/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/android_gradle_build.json	Â‘üçî2Ç ‹×£àÓ2v
+t
+r/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/android_gradle_build_mini.json	Ã‘üçî2Þ ×£àÓ2c
+a
+_/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/build.ninja	Ã‘üçî2æ» öÖ£àÓ2g
+e
+c/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/build.ninja.txt	Ã‘üçî2l
+j
+h/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/build_file_index.txt	Ã‘üçî2` ×£àÓ2m
+k
+i/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/compile_commands.json	Ã‘üçî2	q
+o
+m/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/compile_commands.json.bin	Ã‘üçî2
+w
+u
+s/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/metadata_generation_command.txt	Ã‘üçî2´ ×£àÓ2j
+h
+f/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/prefab_config.json	Ã‘üçî2( ×£àÓ2o
+m
+k/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/x86/symbol_folder_index.txt	Ã‘üçî2b ×£àÓ2
+>>>>>>> main

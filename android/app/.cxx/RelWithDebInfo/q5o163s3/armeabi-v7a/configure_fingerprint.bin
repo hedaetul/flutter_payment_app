@@ -2,6 +2,7 @@ C/C++ Structured Logd
 b
 `/home/hedaetul/Applications/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txtC
 A
+<<<<<<< HEAD
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	óñ€éî2¤ í–•Ñ2|
 z
 x/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/additional_project_files.txt	óñ€éî2 ®Ô£àÓ2y
@@ -26,3 +27,29 @@ p
 n/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/prefab_config.json	óñ€éî2( °Ô£àÓ2w
 u
 s/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/symbol_folder_index.txt	óñ€éî2j °Ô£àÓ2
+=======
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	ØŽüçî2¤ í–•Ñ2|
+z
+x/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/additional_project_files.txt	ØŽüçî2 ®Ô£àÓ2y
+w
+u/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/android_gradle_build.json	ØŽüçî2× ¯Ô£àÓ2~
+|
+z/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/android_gradle_build_mini.json	ØŽüçî2î ¯Ô£àÓ2k
+i
+g/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/build.ninja	ØŽüçî2Ž¼ ¡Ô£àÓ2o
+m
+k/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/build.ninja.txt	ØŽüçî2t
+r
+p/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/build_file_index.txt	ØŽüçî2` °Ô£àÓ2u
+s
+q/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/compile_commands.json	ØŽüçî2	y
+w
+u/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/compile_commands.json.bin	ØŽüçî2
+
+}
+{/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/metadata_generation_command.txt	ØŽüçî2Ü °Ô£àÓ2r
+p
+n/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/prefab_config.json	ØŽüçî2( °Ô£àÓ2w
+u
+s/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/armeabi-v7a/symbol_folder_index.txt	ØŽüçî2j °Ô£àÓ2
+>>>>>>> main

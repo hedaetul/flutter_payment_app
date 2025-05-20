@@ -64,6 +64,10 @@ flutter:
     - assets/icons/icon.png
     - assets/icons/smart_pay_icon.png
     - assets/images/starting_wallpaper.png
+<<<<<<< HEAD
+=======
+    - assets/icons/smart_pay_icon.png
+>>>>>>> main
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

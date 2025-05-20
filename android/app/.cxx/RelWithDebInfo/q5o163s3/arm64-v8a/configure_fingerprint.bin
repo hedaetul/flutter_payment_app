@@ -2,6 +2,32 @@ C/C++ Structured Logd
 b
 `/home/hedaetul/Applications/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txtC
 A
+<<<<<<< HEAD
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	˜ñ€éî2¤ í–•Ñ2z
+x
+v/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/additional_project_files.txt	˜ñ€éî2 ÙÐ£àÓ2w
+u
+s/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/android_gradle_build.json	˜ñ€éî2Ó ÝÐ£àÓ2|
+z
+x/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/android_gradle_build_mini.json	˜ñ€éî2ê ÞÐ£àÓ2i
+g
+e/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/build.ninja	˜ñ€éî2„¼ ÀÐ£àÓ2m
+k
+i/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/build.ninja.txt	˜ñ€éî2r
+p
+n/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/build_file_index.txt	˜ñ€éî2` áÐ£àÓ2s
+q
+o/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/compile_commands.json	˜ñ€éî2	w
+u
+s/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/compile_commands.json.bin	˜ñ€éî2
+}
+{
+y/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/metadata_generation_command.txt	˜ñ€éî2Ò áÐ£àÓ2p
+n
+l/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/prefab_config.json	˜ñ€éî2( áÐ£àÓ2u
+s
+q/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/symbol_folder_index.txt	˜ñ€éî2h áÐ£àÓ2
+=======
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	€üçî2¤ í–•Ñ2z
 x
 v/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/additional_project_files.txt	€üçî2 ÙÐ£àÓ2w
@@ -26,3 +52,4 @@ n
 l/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/prefab_config.json	€üçî2( áÐ£àÓ2u
 s
 q/projects/Flutter_projects/payment_app/android/app/.cxx/RelWithDebInfo/q5o163s3/arm64-v8a/symbol_folder_index.txt	€üçî2h áÐ£àÓ2
+>>>>>>> main

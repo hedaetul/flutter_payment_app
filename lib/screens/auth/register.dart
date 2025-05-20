@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:payment_app/extensions/theme_extension.dart';
 import 'package:payment_app/services/auth_service.dart';
@@ -29,8 +30,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted) {
         Navigator.popUntil(context, (route) => route.isFirst);
       }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        _showError(
+            'This email is already registered. Please log in or use a different email address.');
+        // Optionally, navigate to login or show a "Forgot Password?" dialog here.
+      } else {
+        _showError('SignUp failed: ${e.message}');
+      }
     } catch (e) {
-      _showError('SignUp with email-pass failed: $e');
+      _showError('SignUp failed: $e');
     }
     setState(() => isLoading = false);
   }
